@@ -113,6 +113,58 @@
       </UiButton>
     </section>
 
+    <!-- Form example -->
+    <section class="max-w-md">
+      <h2 class="text-xl font-semibold mb-4">Form Example</h2>
+      <form class="space-y-4" @submit="onFormSubmit">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+          <input
+            v-model="form.values.name"
+            type="text"
+            class="w-full rounded border px-3 py-2"
+            :class="{ 'border-red-500': form.touched.name && form.errors.name }"
+          >
+          <p v-if="form.touched.name && form.errors.name" class="mt-1 text-sm text-red-600">
+            {{ form.errors.name }}
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input
+            v-model="form.values.email"
+            type="email"
+            class="w-full rounded border px-3 py-2"
+            :class="{ 'border-red-500': form.touched.email && form.errors.email }"
+          >
+          <p v-if="form.touched.email && form.errors.email" class="mt-1 text-sm text-red-600">
+            {{ form.errors.email }}
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <input
+            v-model="form.values.password"
+            type="password"
+            class="w-full rounded border px-3 py-2"
+            :class="{ 'border-red-500': form.touched.password && form.errors.password }"
+          >
+          <p v-if="form.touched.password && form.errors.password" class="mt-1 text-sm text-red-600">
+            {{ form.errors.password }}
+          </p>
+        </div>
+
+        <UiButton type="submit" :disabled="form.submitting">
+          <div class="flex gap-2 items-center justify-center">
+            <UiSpinner v-if="form.submitting" size="xs" />
+            <span>{{ form.submitting ? "Submitting..." : "Submit" }}</span>
+          </div>
+        </UiButton>
+      </form>
+    </section>
+
     <section>
       <h2 class="text-xl font-semibold mb-2">Custom Section</h2>
       <p>This is a custom section added for demonstration purposes.</p>
@@ -125,6 +177,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useModal, type ModalState } from "~/composables/useModal";
+import { useForm } from "~/composables/useForm";
 
 type Contact = { id: number; name: string };
 
@@ -160,6 +213,39 @@ function cancelDelete() {
 const note = ref("");
 const role = ref<"admin" | "user" | "guest">("user");
 const saving = ref(false);
+
+interface FormData extends Record<string, unknown> {
+  name: string;
+  email: string;
+  password: string;
+}
+
+const form = useForm<FormData>(
+  {
+    name: '',
+    email: '',
+    password: ''
+  },
+  {
+    name: [
+      { type: 'required', message: 'Name is required' },
+      { type: 'minLength', value: 2, message: 'Name must be at least 2 characters' }
+    ],
+    email: [
+      { type: 'required', message: 'Email is required' },
+      { type: 'email', message: 'Please enter a valid email address' }
+    ],
+    password: [
+      { type: 'required', message: 'Password is required' },
+      { type: 'password', level: 'strong' }
+    ]
+  }
+);
+
+const onFormSubmit = form.onSubmit(async (values) => {
+  await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+  console.log('Form submitted:', values);
+});
 
 async function saveStuff(done: () => void) {
   await new Promise((r) => setTimeout(r, 800));
