@@ -22,8 +22,8 @@
     <!-- Links -->
     <section class="flex flex-row gap-3 justify-start items-center">
       <h2 class="text-xl font-semibold mb-2">Links</h2>
-      <UiLink to="/login" classes="mr-4">Internal Link to Login</UiLink>
-      <UiLink to="https://example.com" external classes="mr-4"
+      <UiLink to="/login" classes="mr-4" underline="hover">Internal Link to Login</UiLink>
+      <UiLink to="https://example.com" external new-tab underline classes="mr-4"
         >External Link</UiLink
       >
       <UiLink to="/register" button color="green" size="md"
@@ -111,6 +111,13 @@
           <span>{{ saving ? "Saving…" : "Save" }}</span>
         </div>
       </UiButton>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-semibold mb-2">Custom Section</h2>
+      <p>This is a custom section added for demonstration purposes.</p>
+
+     <UiLink to="/components" variant="nav" classes="mr-4">Components</UiLink>
     </section>
   </div>
 </template>
