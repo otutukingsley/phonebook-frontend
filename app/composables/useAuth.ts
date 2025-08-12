@@ -1,5 +1,3 @@
-import { useFetch } from "#app";
-
 interface User {
   name: string;
   email: string;
@@ -33,19 +31,34 @@ interface APIError extends Error {
 
 export function useAuth() {
   const user = useState<User | null>("auth:user", () => null);
+  const isLoading = useState<boolean>("auth:loading", () => false);
   const isLoggedIn = computed(() => !!user.value);
 
   async function fetchUser() {
-    const { data, error } = await useFetch<User>("/auth", {
-      baseURL: useRuntimeConfig().public.apiBaseUrl,
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    if (!error.value) user.value = data.value ?? null;
-    else user.value = null;
+    try {
+      isLoading.value = true;
+      const data = await $fetch<User>("/auth", {
+        baseURL: useRuntimeConfig().public.apiBaseUrl,
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      user.value = data;
+      return true;
+    } catch (error) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const apiError = error as APIError;
+        if (apiError.response?.status === 401) {
+          user.value = null;
+          return false;
+        }
+      }
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   async function login(payload: LoginPayload) {
@@ -102,19 +115,25 @@ export function useAuth() {
   }
 
   async function logout() {
-    // Set cookie to expire
-    document.cookie = "jwt=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-
-    // Clear user state
-    user.value = null;
-
-    // Redirect to login page
-    navigateTo("/login");
+    try {
+      // Call logout endpoint to clear server-side session
+      await $fetch("/auth/logout", {
+        baseURL: useRuntimeConfig().public.apiBaseUrl,
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // Clear user state regardless of API call result
+      user.value = null;
+    }
   }
 
   return {
     user,
     isLoggedIn,
+    isLoading,
     fetchUser,
     login,
     register,

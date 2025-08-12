@@ -18,6 +18,10 @@ import type { LoginFormValues, RegisterFormValues } from '~/components/AuthForm.
 import { useAuth } from '~/composables/useAuth'
 import { useRouter } from '#app'
 
+definePageMeta({
+  middleware: ['guest']
+})
+
 const router = useRouter()
 const { register } = useAuth()
 const error = ref('')
@@ -39,7 +43,7 @@ const handleSubmit = async (values: LoginFormValues | RegisterFormValues) => {
       password: String(values.password || '')
     })
     console.log('Registration successful!')
-    await router.push('/contacts')
+    await router.push('/')
   } catch (err) {
     console.error('Registration failed:', err)
     if (err instanceof Error) {
