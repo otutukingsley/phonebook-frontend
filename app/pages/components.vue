@@ -165,6 +165,63 @@
       </form>
     </section>
 
+    <!-- New Form Components Test -->
+    <section class="bg-white p-6 rounded-lg shadow-sm mb-8">
+      <h2 class="text-xl font-semibold mb-4">New Form Components Test</h2>
+      <form class="space-y-4" @submit.prevent="handleFormSubmit">
+        <UiInput
+          v-model="values.name"
+          name="name"
+          label="Name"
+          :rules="[{ type: 'required' }]"
+          live
+        />
+
+        <UiInput
+          v-model="values.email"
+          name="email"
+          type="email"
+          label="Email"
+          :rules="[
+            { type: 'required' },
+            { type: 'email', message: 'Please enter a valid email address' }
+          ]"
+          live
+        />
+
+        <UiInput
+          v-model="values.password"
+          name="password"
+          type="password"
+          label="Password"
+          :rules="[
+            { type: 'required' },
+            { type: 'password', level: 'strong' }
+          ]"
+          live
+        />
+
+        <div class="space-y-2">
+          <UiCheckbox
+            v-model="values.terms"
+            name="terms"
+            label="I agree to the Terms and Conditions"
+          />
+          <UiCheckbox
+            v-model="values.newsletter"
+            name="newsletter"
+            label="Subscribe to newsletter"
+          />
+        </div>
+
+        <UiButton type="submit" :disabled="submitting">
+          Submit Form
+        </UiButton>
+
+        <pre v-if="formResult" class="mt-4 p-4 bg-gray-100 rounded">{{ formResult }}</pre>
+      </form>
+    </section>
+
     <section>
       <h2 class="text-xl font-semibold mb-2">Custom Section</h2>
       <p>This is a custom section added for demonstration purposes.</p>
@@ -220,6 +277,7 @@ interface FormData extends Record<string, unknown> {
   password: string;
 }
 
+// First form for legacy code
 const form = useForm<FormData>(
   {
     name: '',
@@ -241,6 +299,23 @@ const form = useForm<FormData>(
     ]
   }
 );
+
+// New form using our updated components
+const initial = {
+  name: '',
+  email: '',
+  password: '',
+  terms: false,
+  newsletter: false
+}
+
+const { values, submitting, onSubmit } = useForm(initial)
+const formResult = ref('')
+
+const handleFormSubmit = onSubmit(async (vals) => {
+  formResult.value = JSON.stringify(vals, null, 2)
+  await new Promise(r => setTimeout(r, 1000)) // Simulate API call
+});
 
 const onFormSubmit = form.onSubmit(async (values) => {
   await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
