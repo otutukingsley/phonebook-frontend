@@ -3,13 +3,13 @@ interface User {
   email: string;
 }
 
-interface LoginPayload {
+type LoginPayload = Record<string, unknown> & {
   email: string;
   password: string;
   remember?: boolean;
 }
 
-interface RegisterPayload {
+type RegisterPayload = Record<string, unknown> & {
   name: string;
   email: string;
   password: string;
@@ -30,111 +30,71 @@ interface APIError extends Error {
 }
 
 export function useAuth() {
-  const user = useState<User | null>("auth:user", () => null);
-  const isLoading = useState<boolean>("auth:loading", () => false);
-  const isLoggedIn = computed(() => !!user.value);
+  const api = useApi();
+  const isLoggedIn = useState<boolean>('auth:logged-in', () => false);
+  const isLoading = useState<boolean>('auth:loading', () => true);
 
-  async function fetchUser() {
-    try {
-      isLoading.value = true;
-      const data = await $fetch<User>("/auth", {
-        baseURL: useRuntimeConfig().public.apiBaseUrl,
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      user.value = data;
-      return true;
-    } catch (error) {
-      if (error && typeof error === 'object' && 'response' in error) {
-        const apiError = error as APIError;
-        if (apiError.response?.status === 401) {
-          user.value = null;
-          return false;
-        }
+  const { data: user, refresh } = useAsyncData<User | null>(
+    'auth-user',
+    async () => {
+      try {
+        return await api.get<User>('/auth');
+      } catch {
+        return null;
       }
-      throw error;
-    } finally {
-      isLoading.value = false;
+    },
+    {
+      server: true,
+      immediate: true,
+      transform: (user) => {
+        isLoggedIn.value = !!user;
+        isLoading.value = false;
+        return user;
+      },
+      watch: [isLoggedIn]
     }
-  }
+  );
 
   async function login(payload: LoginPayload) {
     try {
-      await $fetch("/auth", {
-        baseURL: useRuntimeConfig().public.apiBaseUrl,
-        method: "POST",
-        body: payload,
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      await fetchUser();
+      await api.post<User>('/auth', payload);
+      await refresh();
     } catch (error) {
-      // Handle different types of errors
       if (error && typeof error === 'object' && 'response' in error) {
         const apiError = error as APIError;
-        console.log(apiError.response)
         if (apiError.response?._data?.message) {
           throw new Error(apiError.response._data.message);
         }
       }
-      // If we couldn't extract a specific message, throw a generic error
-      throw new Error(error instanceof Error ? error.message : "Login failed");
+      throw error;
     }
   }
 
   async function register(payload: RegisterPayload) {
     try {
-      await $fetch("/users", {
-        baseURL: useRuntimeConfig().public.apiBaseUrl,
-        method: "POST",
-        body: payload,
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      await fetchUser();
+      await api.post<User>('/users', payload);
+      await refresh();
     } catch (error) {
-      // Handle different types of errors
       if (error && typeof error === 'object' && 'response' in error) {
         const apiError = error as APIError;
         if (apiError.response?._data?.message) {
           throw new Error(apiError.response._data.message);
         }
       }
-      // If we couldn't extract a specific message, throw a generic error
-      throw new Error(error instanceof Error ? error.message : "Registration failed");
+      throw error;
     }
   }
 
   async function logout() {
-    try {
-      // Call logout endpoint to clear server-side session
-      await $fetch("/auth/logout", {
-        baseURL: useRuntimeConfig().public.apiBaseUrl,
-        method: "POST",
-        credentials: "include",
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      // Clear user state regardless of API call result
-      user.value = null;
-    }
+    await api.post('/auth/logout');
+    await refresh();
   }
 
   return {
     user,
     isLoggedIn,
     isLoading,
-    fetchUser,
+    fetchUser: refresh,
     login,
     register,
     logout,

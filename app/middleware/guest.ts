@@ -2,25 +2,18 @@ import { defineNuxtRouteMiddleware, navigateTo } from 'nuxt/app'
 import { useAuth } from '../composables/useAuth'
 
 export default defineNuxtRouteMiddleware(async () => {
-  const { user, fetchUser } = useAuth()
-
-  // Don't redirect during SSR to avoid hydration issues
-  if (import.meta.server) {
-    try {
-      await fetchUser()
-    } catch (error) {
-      console.error('Auth check failed during SSR:', error)
-    }
-    return
-  }
-
-  // Client-side navigation
-  if (!user.value) {
+  const { fetchUser, isLoading, isLoggedIn } = useAuth()
+  
+  // If we're already loading, wait for the fetch
+  if (isLoading.value) {
     await fetchUser()
   }
 
-  // After fetching, if user exists, redirect to home
-  if (user.value) {
+  // Always fetch to ensure we have the latest state
+  await fetchUser()
+  
+  // Redirect to home if user is logged in
+  if (isLoggedIn.value) {
     return navigateTo('/')
   }
 })
