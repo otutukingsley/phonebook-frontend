@@ -1,19 +1,14 @@
-import { defineNuxtRouteMiddleware, navigateTo } from 'nuxt/app'
-import { useAuth } from '../composables/useAuth'
-
-export default defineNuxtRouteMiddleware(async () => {
-  const { fetchUser, isLoading, isLoggedIn } = useAuth()
-  
-  // If we're already loading, wait for the fetch
-  if (isLoading.value) {
-    await fetchUser()
-  }
-
-  // Always fetch to ensure we have the latest state
+export default defineNuxtRouteMiddleware(async (_to) => {
+  const { isLoggedIn, fetchUser } = useAuth()
+   
+  // Check auth state before proceeding
   await fetchUser()
   
-  // Redirect to home if user is logged in
+  // Redirect to home if user is logged in (client-only to avoid SSR flash)
   if (isLoggedIn.value) {
-    return navigateTo('/')
+    if (import.meta.client) {
+      return navigateTo('/')
+    }
+    return abortNavigation()  // Block on server; client will handle
   }
 })

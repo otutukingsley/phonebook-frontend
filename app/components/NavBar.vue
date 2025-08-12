@@ -44,20 +44,11 @@
 
 
 <script lang="ts" setup>
-import { onMounted } from 'vue'
-import { useRouter } from '#app'
+import { useRouter } from '#imports'
 import { useAuth } from '~/composables/useAuth'
 
-const { user, isLoggedIn, isLoading, logout, fetchUser } = useAuth()
+const { user, isLoggedIn, isLoading, logout } = useAuth()
 const router = useRouter()
-
-onMounted(async () => {
-  try {
-    await fetchUser()
-  } catch (error) {
-    console.error('Failed to fetch user:', error)
-  }
-})
 
 const handleLogout = async () => {
   await logout()
