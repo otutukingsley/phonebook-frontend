@@ -16,6 +16,5 @@
 <script setup lang="ts">
 definePageMeta({
   middleware: ['guest'],
-  meta: { guest: true }
 })
 </script>

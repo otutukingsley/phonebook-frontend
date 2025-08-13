@@ -1,18 +1,21 @@
-import { defineNuxtRouteMiddleware, navigateTo, abortNavigation } from 'nuxt/app'
-import { useAuth } from '../composables/useAuth'
+import { sendRedirect } from 'h3'
 
-export default defineNuxtRouteMiddleware(async (_to) => {
+export default defineNuxtRouteMiddleware(async (to) => {
   const { loggedIn, checkAuth } = useAuth()
-
-  console.log(import.meta.client, loggedIn.value)
+  const nuxtApp = useNuxtApp()
 
   await checkAuth()
-
   if (!loggedIn.value) {
+    console.log('Auth middleware: Redirecting to /login from', to.path)
     if (import.meta.client) {
-      console.log('Auth middleware: Redirecting to /login')
-      return navigateTo('/login', { redirectCode: 307 })
+      return navigateTo('/login', { redirectCode: 307, replace: true })
     }
-    return abortNavigation()
+    if (import.meta.server && nuxtApp.ssrContext?.event) {
+      return await nuxtApp.runWithContext(() =>
+        nuxtApp.callHook('app:redirected').then(() =>
+          sendRedirect(nuxtApp.ssrContext!.event, '/login', 307)
+        )
+      )
+    }
   }
 })

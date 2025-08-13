@@ -1,18 +1,35 @@
+import { sendRedirect } from 'h3'
+
 export default defineNuxtRouteMiddleware(async (to) => {
   const { loggedIn, checkAuth } = useAuth()
-
-  console.log(to.meta.middleware === 'guest', to.meta.middleware)
+  const router = useRouter()
+  const nuxtApp = useNuxtApp()
 
   await checkAuth()
-  if (loggedIn.value) {
-    // Check if the target route has meta.guest: true
-    const isGuestRoute = to.meta.middleware === 'guest';
+  const routes = router.getRoutes()
 
-    console.log(isGuestRoute)
+  // Check if route is guest-only
+  const isGuestRoute = routes.some((route) => {
+    console.log(route.meta)
+    return (
+      route.path === to.path &&
+      Array.isArray(route.meta?.middleware) &&
+      route.meta.middleware[0] === 'guest'
+    )
+  })
 
-    if (isGuestRoute) {
-      console.log('Global auth middleware: Redirecting to / from', to.path)
+  if (loggedIn.value && isGuestRoute) {
+    console.log('Global auth middleware: Redirecting to / from guest route', to.path)
+    if (import.meta.client) {
       return navigateTo('/', { redirectCode: 307, replace: true })
+    }
+
+    if (import.meta.server && nuxtApp.ssrContext?.event) {
+      return await nuxtApp.runWithContext(() =>
+        nuxtApp.callHook('app:redirected').then(() =>
+          sendRedirect(nuxtApp.ssrContext!.event, '/', 307)
+        )
+      )
     }
   }
 })

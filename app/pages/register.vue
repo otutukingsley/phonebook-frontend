@@ -19,7 +19,6 @@ import { useAuth } from '~/composables/useAuth'
 
 definePageMeta({
   middleware: ['guest'],
-  meta: { guest: true }
 })
 
 const { register } = useAuth()
@@ -35,16 +34,13 @@ const handleSubmit = async (values: LoginFormValues | RegisterFormValues) => {
   isLoading.value = true
   error.value = ''
   try {
-    console.log('Register attempt with:', values)
     await register({
       name: String(values.name || ''),
       email: String(values.email || ''),
       password: String(values.password || '')
     })
-    console.log('Registration successful!')
     await navigateTo('/')
   } catch (err) {
-    console.error('Registration failed:', err)
     if (err instanceof Error) {
       error.value = err.message
     } else if (err && typeof err === 'object' && 'status' in err) {

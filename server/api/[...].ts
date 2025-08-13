@@ -11,9 +11,6 @@ export default defineEventHandler(async (event) => {
   const adjustedPath = event.path.replace(/^\/api/, '');
   const targetUrl = new URL(config.apiBaseUrl + adjustedPath).toString();  // Normalize as URL
 
-  // Debug log to confirm in terminal
-  console.log(`Proxying ${event.method} ${event.path} to ${targetUrl}`);
-
   // Forward relevant headers (cookie, authorization, etc.)
   const headers = getRequestHeaders(event);
   delete headers.host;  // Avoid sending internal host

@@ -24,8 +24,7 @@
         <ClientOnly>
           <template v-if="!isLoading">
             <UiLink v-if="loggedIn" to="/components" variant="nav" color="white" classes="mr-4">Components</UiLink>
-
-            <!-- <span v-if="loggedIn" class="text-white mr-4">{{ (user as { name: string }).name || 'User' }}</span> -->
+            
             <UiLink v-if="!loggedIn" to="/register" variant="nav" color="white" exact classes="mr-4">Register</UiLink>
             <UiLink v-if="!loggedIn" to="/login" variant="nav" color="white" exact classes="mr-4">Login</UiLink>
 

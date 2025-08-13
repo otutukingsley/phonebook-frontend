@@ -236,6 +236,10 @@ import { ref } from "vue";
 import { useModal, type ModalState } from "~/composables/useModal";
 import { useForm } from "~/composables/useForm";
 
+definePageMeta({
+  middleware: ['auth'],
+})
+
 type Contact = { id: number; name: string };
 
 const contacts = ref<Contact[]>([

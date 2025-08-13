@@ -19,7 +19,6 @@ import { useAuth } from '~/composables/useAuth'
 
 definePageMeta({
   middleware: ['guest'],
-  meta: { guest: true }
 })
 const { login } = useAuth()
 const error = ref('')
@@ -34,13 +33,11 @@ const handleSubmit = async (values: LoginFormValues | RegisterFormValues) => {
   error.value = ''
   isLoading.value = true
   try {
-    console.log('Login attempt with:', values)
     await login({
       email: String(values.email || ''),
       password: String(values.password || ''),
       remember: Boolean(values.remember)
     })
-    console.log('Login successful!')
     await navigateTo('/');
   } catch (err) {
     console.error('Login failed:', err)

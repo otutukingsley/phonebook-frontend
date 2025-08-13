@@ -15,6 +15,6 @@ import { useAuth } from '~/composables/useAuth'
 const { sessionUser:user } = useAuth()
 
 definePageMeta({
-  middleware: ['auth']
+  middleware: ['auth'],
 })
 </script>

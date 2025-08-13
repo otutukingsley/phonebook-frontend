@@ -46,7 +46,6 @@ export function useAuth() {
       isLoading.value = false
     }
 
-    console.log(loggedIn)
     return loggedIn.value
   }
 
@@ -63,7 +62,6 @@ export function useAuth() {
           body: { user: { name: user.value.name, email: user.value.email } },
           credentials: 'include'
         })
-        console.log('Session set:', { user: user.value })
       }
   } catch (error) {
     const apiError = error as APIError
