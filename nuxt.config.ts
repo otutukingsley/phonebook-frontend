@@ -9,7 +9,11 @@ export default defineNuxtConfig({
     pageTransition: { name: 'page', mode: 'out-in' },
   },
   runtimeConfig: {
-    apiBaseUrl: process.env.NUXT_API_BASE_URL || 'http://localhost:5500/api',
+    apiBaseUrl: process.env.NUXT_API_BASE_URL || "",
+    session: {
+      password: process.env.NUXT_SESSION_PASSWORD || "",
+      maxAge: 60 * 60 * 24 * 7
+    }
   },
   typescript: {
     strict: true,
@@ -20,7 +24,8 @@ export default defineNuxtConfig({
     '@nuxt/image',
     '@nuxt/scripts',
     '@nuxt/test-utils',
-    '@nuxt/ui'
+    '@nuxt/ui',
+    'nuxt-auth-utils'
   ],
 
   css: ["~/assets/css/main.css"],

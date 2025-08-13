@@ -1,4 +1,4 @@
-import { useApi } from "./useApi";
+import { useState } from '#app'
 
 interface User {
   name: string;
@@ -32,84 +32,103 @@ interface APIError extends Error {
 }
 
 export function useAuth() {
-  const api = useApi();
-  const isLoggedIn = useState<boolean>("auth:logged-in", () => false);
-  const user = useState<User | null>("user", () => null);
-  const isLoading = useState<boolean>("auth:loading", () => false);
+  const { loggedIn, user: sessionUser, session, fetch: fetchSession, clear } = useUserSession()
+  const user = useState<User | null>('user', () => null)
+  const isLoading = useState<boolean>('auth:loading', () => false)
 
-  async function fetchUser() {
-    isLoading.value = true;
-    let response: User | null = null;
-
-    if (import.meta.client) {
-      // Use $fetch on client to avoid mount warning
-      try {
-        response = await $fetch<User>("/api/auth", { credentials: "include" });
-      } catch {
-        response = null;
-      }
-    } else {
-      // Use useAsyncData on server for SSR optimization
-      const { data } = await useAsyncData<User | null>(
-        "auth:user",
-        async () => {
-          try {
-            return await $fetch<User>("/api/auth", { credentials: "include" });
-          } catch {
-            return null;
-          }
-        }
-      );
-      response = data.value ?? null;
+  async function checkAuth() {
+    isLoading.value = true
+    try {
+      await fetchSession()
+    } catch (error) {
+      console.error('Auth check failed:', error)
+    } finally {
+      isLoading.value = false
     }
 
-    user.value = response;
-    isLoggedIn.value = !!response;
-    isLoading.value = false;
+    console.log(loggedIn)
+    return loggedIn.value
   }
+
+  async function fetchUser(force = false) {
+  if (user.value && !force) return
+
+  isLoading.value = true
+  try {
+    const response = await $fetch<User | null>('/api/auth', { credentials: 'include' })
+    user.value = response || null
+    if (user.value) {
+        await $fetch('/api/_auth/set-session', {
+          method: 'POST',
+          body: { user: { name: user.value.name, email: user.value.email } },
+          credentials: 'include'
+        })
+        console.log('Session set:', { user: user.value })
+      }
+  } catch (error) {
+    const apiError = error as APIError
+    if (apiError.response?._data?.message) {
+      throw new Error(apiError.response._data.message)
+    }
+    user.value = null
+    throw error
+  } finally {
+    isLoading.value = false
+  }
+}
 
   async function login(payload: LoginPayload) {
     try {
-      await api.post<User>("/api/auth", payload);
-      await fetchUser();
+      await $fetch('/api/auth', {
+        method: 'POST',
+        body: payload,
+        credentials: 'include',
+      })
+      await fetchSession()
+      await fetchUser()
     } catch (error) {
-      if (error && typeof error === "object" && "response" in error) {
-        const apiError = error as APIError;
-        if (apiError.response?._data?.message) {
-          throw new Error(apiError.response._data.message);
-        }
+      const apiError = error as APIError
+      if (apiError.response?._data?.message) {
+        throw new Error(apiError.response._data.message)
       }
-      throw error;
+      throw error
     }
   }
 
   async function register(payload: RegisterPayload) {
     try {
-      await api.post<User>("/api/users", payload);
-      await fetchUser();
+      await $fetch('/api/users', {
+        method: 'POST',
+        body: payload,
+        credentials: 'include',
+      })
+      await fetchSession()
+      await fetchUser()
     } catch (error) {
-      if (error && typeof error === "object" && "response" in error) {
-        const apiError = error as APIError;
-        if (apiError.response?._data?.message) {
-          throw new Error(apiError.response._data.message);
-        }
+      const apiError = error as APIError
+      if (apiError.response?._data?.message) {
+        throw new Error(apiError.response._data.message)
       }
-      throw error;
+      throw error
     }
   }
 
   async function logout() {
-    await api.post("/api/auth/logout");
-    await fetchUser();
+    try {
+      await $fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      await clear()
+      user.value = null
+    } catch (error) {
+      const apiError = error as APIError
+      if (apiError.response?._data?.message) {
+        throw new Error(apiError.response._data.message)
+      }
+      throw error
+    }
   }
 
-  return {
-    user,
-    isLoggedIn,
-    isLoading,
-    fetchUser,
-    login,
-    register,
-    logout,
-  };
+  return { loggedIn, sessionUser, user, session, isLoading, checkAuth, fetchUser, login, register, logout }
 }

@@ -1,4 +1,3 @@
-// server/api/[...].ts
 import { defineEventHandler, getRequestHeaders, proxyRequest } from "h3";
 
 export default defineEventHandler(async (event) => {

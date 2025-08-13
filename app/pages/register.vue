@@ -16,13 +16,11 @@ import { ref } from 'vue'
 import AuthForm from '~/components/AuthForm.vue'
 import type { LoginFormValues, RegisterFormValues } from '~/components/AuthForm.vue'
 import { useAuth } from '~/composables/useAuth'
-import { useRouter } from '#app'
 
 definePageMeta({
   middleware: ['guest']
 })
 
-const router = useRouter()
 const { register } = useAuth()
 const error = ref('')
 const isLoading = ref(false)
@@ -43,7 +41,7 @@ const handleSubmit = async (values: LoginFormValues | RegisterFormValues) => {
       password: String(values.password || '')
     })
     console.log('Registration successful!')
-    await router.push('/')
+    await navigateTo('/')
   } catch (err) {
     console.error('Registration failed:', err)
     if (err instanceof Error) {

@@ -1,24 +1,16 @@
-import { defineNuxtRouteMiddleware, navigateTo } from 'nuxt/app'
+import { defineNuxtRouteMiddleware, navigateTo, abortNavigation } from 'nuxt/app'
 import { useAuth } from '../composables/useAuth'
 
 export default defineNuxtRouteMiddleware(async (_to) => {
-  const { fetchUser, isLoading, isLoggedIn } = useAuth()
+  const { loggedIn, checkAuth } = useAuth()
 
-  // If we're already loading, wait for the fetch
-  if (isLoading.value) {
-    await fetchUser()
+  await checkAuth()
+
+  if (!loggedIn.value) {
+    if (import.meta.client) {
+      console.log('Auth middleware: Redirecting to /login')
+      return navigateTo('/login', { redirectCode: 307 })
+    }
+    return abortNavigation()
   }
-
-  // If no user after initial load, try fetching again
-  if (!isLoggedIn.value) {
-    await fetchUser()
-  }
-
-  // After fetching, if still no user, redirect to login
-  if (!isLoggedIn.value) {
-    return navigateTo('/login')
-  }
-
-  // If we have a user, continue navigation
-  return
 })

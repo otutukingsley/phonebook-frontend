@@ -1,14 +1,15 @@
+import { defineNuxtRouteMiddleware, navigateTo, abortNavigation } from 'nuxt/app'
+import { useAuth } from '../composables/useAuth'
+
 export default defineNuxtRouteMiddleware(async (_to) => {
-  const { isLoggedIn, fetchUser } = useAuth()
-   
-  // Check auth state before proceeding
-  await fetchUser()
-  
-  // Redirect to home if user is logged in (client-only to avoid SSR flash)
-  if (isLoggedIn.value) {
+  const { loggedIn, checkAuth } = useAuth()
+
+  await checkAuth() // Sync state before checking
+  if (loggedIn.value) {
     if (import.meta.client) {
-      return navigateTo('/')
+      console.log('Guest middleware: Redirecting to /')
+      return navigateTo('/', { redirectCode: 307 })
     }
-    return abortNavigation()  // Block on server; client will handle
+    return abortNavigation() // Block on server
   }
 })
