@@ -4,6 +4,8 @@ import { useAuth } from '../composables/useAuth'
 export default defineNuxtRouteMiddleware(async (_to) => {
   const { loggedIn, checkAuth } = useAuth()
 
+  console.log(import.meta.client, loggedIn.value)
+
   await checkAuth()
 
   if (!loggedIn.value) {

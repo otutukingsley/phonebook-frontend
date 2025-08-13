@@ -18,7 +18,8 @@ import type { LoginFormValues, RegisterFormValues } from '~/components/AuthForm.
 import { useAuth } from '~/composables/useAuth'
 
 definePageMeta({
-  middleware: ['guest']
+  middleware: ['guest'],
+  meta: { guest: true }
 })
 const { login } = useAuth()
 const error = ref('')
