@@ -20,16 +20,16 @@
         </ClientOnly>
       </div>
 
-      <div class="flex items-center">
+      <div class="flex items-start">
         <ClientOnly>
           <template v-if="!isLoading">
             <UiLink v-if="loggedIn" to="/components" variant="nav" color="white" classes="mr-4">Components</UiLink>
 
-            <span v-if="loggedIn" class="text-white mr-4">{{ (user as { name: string }).name || 'User' }}</span>
+            <!-- <span v-if="loggedIn" class="text-white mr-4">{{ (user as { name: string }).name || 'User' }}</span> -->
             <UiLink v-if="!loggedIn" to="/register" variant="nav" color="white" exact classes="mr-4">Register</UiLink>
             <UiLink v-if="!loggedIn" to="/login" variant="nav" color="white" exact classes="mr-4">Login</UiLink>
 
-            <UiButton v-if="loggedIn" classes="bg-transparent hover:bg-white/10 text-white" @click="handleLogout">
+            <UiButton v-if="loggedIn" variant="none" classes="hover:bg-transparent cursor-pointer" @click="handleLogout">
               Logout
             </UiButton>
           </template>
@@ -47,7 +47,7 @@
 import { useRouter } from '#imports'
 import { useAuth } from '~/composables/useAuth'
 
-const { sessionUser: user, loggedIn, isLoading, logout } = useAuth()
+const { loggedIn, isLoading, logout } = useAuth()
 const router = useRouter()
 
 const handleLogout = async () => {
