@@ -33,6 +33,7 @@ interface APIError extends Error {
 
 export function useAuth() {
   const { loggedIn, user: sessionUser, session, fetch: fetchSession, clear } = useUserSession()
+  const { get, post } = useApi()
   const user = useState<User | null>('user', () => null)
   const isLoading = useState<boolean>('auth:loading', () => false)
 
@@ -54,15 +55,11 @@ export function useAuth() {
 
   isLoading.value = true
   try {
-    const response = await $fetch<User | null>('/api/auth', { credentials: 'include' })
+    const response = await get<User | null>('/api/auth')
     user.value = response || null
     if (user.value) {
-        await $fetch('/api/_auth/set-session', {
-          method: 'POST',
-          body: { user: { name: user.value.name, email: user.value.email } },
-          credentials: 'include'
-        })
-      }
+      await post('/api/_auth/set-session', { user: { name: user.value.name, email: user.value.email } })
+    }
   } catch (error) {
     const apiError = error as APIError
     if (apiError.response?._data?.message) {
@@ -77,11 +74,7 @@ export function useAuth() {
 
   async function login(payload: LoginPayload) {
     try {
-      await $fetch('/api/auth', {
-        method: 'POST',
-        body: payload,
-        credentials: 'include',
-      })
+      await post('/api/auth', payload)
       await fetchSession()
       await fetchUser()
     } catch (error) {
@@ -95,11 +88,7 @@ export function useAuth() {
 
   async function register(payload: RegisterPayload) {
     try {
-      await $fetch('/api/users', {
-        method: 'POST',
-        body: payload,
-        credentials: 'include',
-      })
+      await post('/api/users', payload)
       await fetchSession()
       await fetchUser()
     } catch (error) {
@@ -113,10 +102,7 @@ export function useAuth() {
 
   async function logout() {
     try {
-      await $fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      })
+      await post('/api/auth/logout')
       await clear()
       user.value = null
     } catch (error) {
