@@ -120,10 +120,10 @@ export function useContacts() {
       return;
     }
     
-    const searchTerms = searchInput.value.toLowerCase().split(' ');
+    const searchTerm = searchInput.value.toLowerCase();
     filteredContacts.value = contacts.value.filter(contact => {
       const searchableText = `${contact.name} ${contact.email} ${contact.phone} ${contact.type}`.toLowerCase();
-      return searchTerms.every(term => searchableText.includes(term));
+      return searchableText.includes(searchTerm);
     });
   }
 
