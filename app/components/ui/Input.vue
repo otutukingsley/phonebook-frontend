@@ -25,7 +25,7 @@ const props = withDefaults(defineProps<{
   label?: string
   name?: string
   id?: string
-  type?: 'text'|'email'|'password'
+  type?: 'text'|'email'|'password'|'textarea'
   placeholder?: string
   maxlength?: number
   error?: string | null

@@ -4,6 +4,8 @@ interface Contact {
   name: string;
   email: string;
   phone: string;
+  address?: string;
+  notes?: string;
   type: "personal" | "professional";
   createdAt: string;
   updatedAt?: string;
@@ -13,6 +15,8 @@ type CreateContactPayload = {
   name: string;
   email: string;
   phone: string;
+  address?: string;
+  notes?: string;
   type?: "personal" | "professional";
 };
 
@@ -90,6 +94,18 @@ export function useContacts() {
         cleanUpdates.phone = updates.phone;
       }
       if (
+        updates.address !== undefined &&
+        updates.address !== selectedContact.value.address
+      ) {
+        cleanUpdates.address = updates.address;
+      }
+      if (
+        updates.notes !== undefined &&
+        updates.notes !== selectedContact.value.notes
+      ) {
+        cleanUpdates.notes = updates.notes;
+      }
+      if (
         updates.type !== undefined &&
         updates.type !== selectedContact.value.type
       ) {
@@ -151,6 +167,9 @@ export function useContacts() {
         contact.name.toLowerCase().includes(searchTerm) ||
         contact.email.toLowerCase().includes(searchTerm) ||
         contact.phone.toLowerCase().includes(searchTerm) ||
+        (contact.address &&
+          contact.address.toLowerCase().includes(searchTerm)) ||
+        (contact.notes && contact.notes.toLowerCase().includes(searchTerm)) ||
         contact.type.toLowerCase().includes(searchTerm)
     );
     return filteredContacts.value;
