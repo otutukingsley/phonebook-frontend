@@ -31,6 +31,27 @@
       />
     </div>
 
+    <div v-if="mode === 'register'" class="mb-4">
+      <UiSelect
+        v-model="values.securityQuestion"
+        field-name="securityQuestion"
+        label="Security Question"
+        placeholder="Select a security question"
+        :options="securityQuestions"
+        :error="errors.securityQuestion"
+      />
+    </div>
+
+    <div v-if="mode === 'register'" class="mb-4">
+      <UiInput
+        v-model="values.securityAnswer"
+        name="securityAnswer"
+        label="Security Answer"
+        placeholder="Enter your answer"
+        :error="errors.securityAnswer"
+      />
+    </div>
+
     <div v-if="mode === 'login'" class="mb-4">
       <UiCheckbox
         v-model="values.remember"
@@ -70,7 +91,11 @@ import UiSpinner from '~/components/ui/Spinner.vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiCheckbox from '~/components/ui/Checkbox.vue'
 import UiLink from '~/components/ui/Link.vue'
+import UiSelect from '~/components/ui/Select.vue'
 import { useForm } from '~/composables/useForm'
+import { SECURITY_QUESTION_OPTIONS } from '~/constants/securityQuestions'
+
+const securityQuestions = SECURITY_QUESTION_OPTIONS
 
 export interface BaseFormValues {
   email: string
@@ -83,6 +108,8 @@ export interface LoginFormValues extends BaseFormValues {
 
 export interface RegisterFormValues extends BaseFormValues {
   name: string
+  securityQuestion: string
+  securityAnswer: string
 }
 
 const props = withDefaults(defineProps<{
@@ -99,7 +126,9 @@ const initialValues = {
   name: '',
   email: '',
   password: '',
-  remember: false
+  remember: false,
+  securityQuestion: '',
+  securityAnswer: ''
 } as const
 
 // Validation rules that change based on form mode
@@ -121,7 +150,7 @@ const rules = computed(() => ({
   ],
   password: props.mode === 'register' ? [
     { type: 'required' as const, message: 'Password is required' },
-    { 
+    {
       type: 'custom' as const,
       validate: (value: unknown) => {
         if (typeof value !== 'string') return false
@@ -131,7 +160,21 @@ const rules = computed(() => ({
     }
   ] : [
     { type: 'required' as const, message: 'Password is required' }
-  ]
+  ],
+  securityQuestion: props.mode === 'register' ? [
+    { type: 'required' as const, message: 'Security question is required' }
+  ] : [],
+  securityAnswer: props.mode === 'register' ? [
+    { type: 'required' as const, message: 'Security answer is required' },
+    {
+      type: 'custom' as const,
+      validate: (value: unknown) => {
+        if (typeof value !== 'string') return false
+        return value.trim().length >= 2
+      },
+      message: 'Security answer must be at least 2 characters'
+    }
+  ] : []
 }))
 
 const emit = defineEmits<{
@@ -155,7 +198,9 @@ const handleSubmit = onSubmit(async (vals) => {
     if (props.mode === 'register') {
       const payload: RegisterFormValues = {
         ...basePayload,
-        name: String(vals.name || '')
+        name: String(vals.name || ''),
+        securityQuestion: String(vals.securityQuestion || ''),
+        securityAnswer: String(vals.securityAnswer || '')
       }
       emit('submit', payload)
     } else {

@@ -9,15 +9,18 @@
     </template>
 
     <div v-if="selectedContact" class="space-y-4">
-      <div class="flex items-center gap-2 mb-4">
-        <h3 class="text-xl font-bold">{{ selectedContact.name }}</h3>
-        <UiBadge
-          :text="selectedContact.type"
-          :color="selectedContact.type === 'other' ? 'blue' : 'green'"
-        />
-      </div>
-
       <div class="space-y-3">
+        <div class="flex items-start justify-between">
+          <div>
+            <label class="text-sm font-medium text-gray-500">Name</label>
+            <p class="text-gray-900 font-bold capitalize">{{ selectedContact.name }}</p>
+          </div>
+          <UiBadge
+            :text="selectedContact.type"
+            :color="selectedContact.type === 'other' ? 'blue' : 'green'"
+          />
+        </div>
+
         <div>
           <label class="text-sm font-medium text-gray-500">Email</label>
           <p class="text-gray-900">{{ selectedContact.email }}</p>
@@ -41,6 +44,7 @@
 
       <div class="flex justify-end pt-4">
         <UiButton color="gray" @click="handleClose">
+          <XMarkIcon class="h-4 w-4 mr-1" />
           Close
         </UiButton>
       </div>
@@ -49,6 +53,7 @@
 </template>
 
 <script setup lang="ts">
+import { XMarkIcon } from '@heroicons/vue/24/outline'
 import { useContacts } from '~/composables/useContacts'
 import { useModal } from '~/composables/useModal'
 import UiModal from '~/components/ui/Modal.vue'

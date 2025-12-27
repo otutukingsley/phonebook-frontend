@@ -20,7 +20,9 @@
     <UiInput
       v-model="form.values.phone"
       name="phone"
+      type="tel"
       label="Phone"
+      placeholder="123-456-7890"
       :error="form.touched.phone ? form.errors.phone : null"
       required
     />

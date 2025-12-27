@@ -37,7 +37,9 @@ const handleSubmit = async (values: LoginFormValues | RegisterFormValues) => {
     await register({
       name: String(values.name || ''),
       email: String(values.email || ''),
-      password: String(values.password || '')
+      password: String(values.password || ''),
+      securityQuestion: String(values.securityQuestion || ''),
+      securityAnswer: String(values.securityAnswer || '')
     })
     await navigateTo('/')
   } catch (err) {

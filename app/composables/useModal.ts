@@ -26,5 +26,10 @@ export function useModal() {
     s.value = { ...s.value, show: !s.value.show, ...params }
   }
 
-  return { modalState, open, close, toggle }
+  const isOpen = (id: string): boolean => {
+    const s = modalState(id)
+    return s.value.show
+  }
+
+  return { modalState, open, close, toggle, isOpen }
 }

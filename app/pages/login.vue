@@ -1,12 +1,17 @@
 <template>
   <div class="min-h-screen flex flex-col items-center justify-start pt-20">
     <div class="w-full max-w-md">
-      <AuthForm 
-        mode="login" 
+      <AuthForm
+        mode="login"
         :is-submitting="isLoading"
         :submit-error="error"
         @submit="handleSubmit"
       />
+      <p class="text-sm text-gray-600 mt-3 text-center">
+        <NuxtLink to="/forgot-password" class="text-green-600 hover:text-green-700 hover:underline">
+          Forgot your password?
+        </NuxtLink>
+      </p>
     </div>
   </div>
 </template>

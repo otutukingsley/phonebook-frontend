@@ -24,7 +24,10 @@
         <ClientOnly>
           <template v-if="!isLoading">
             <UiLink v-if="loggedIn" to="/components" variant="nav" color="white" classes="mr-4">Components</UiLink>
-            
+            <UiButton v-if="loggedIn" variant="none" classes="hover:bg-transparent cursor-pointer mr-4" @click="openProfileModal">
+              Profile
+            </UiButton>
+
             <UiLink v-if="!loggedIn" to="/register" variant="nav" color="white" exact classes="mr-4">Register</UiLink>
             <UiLink v-if="!loggedIn" to="/login" variant="nav" color="white" exact classes="mr-4">Login</UiLink>
 
@@ -45,9 +48,15 @@
 <script lang="ts" setup>
 import { useRouter } from '#imports'
 import { useAuth } from '~/composables/useAuth'
+import { useModal } from '~/composables/useModal'
 
 const { loggedIn, isLoading, logout } = useAuth()
+const { open } = useModal()
 const router = useRouter()
+
+const openProfileModal = () => {
+  open('view-profile-modal')
+}
 
 const handleLogout = async () => {
   await logout()

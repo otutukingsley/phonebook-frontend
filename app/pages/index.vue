@@ -8,14 +8,18 @@
     </div>
 
     <div class="flex justify-between mb-4">
-      <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="Search contacts..."
-        class="w-1/3 rounded border px-3 py-2"
-        @input="handleSearch"
-      >
+      <div class="relative w-1/3">
+        <MagnifyingGlassIcon class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search contacts..."
+          class="w-full rounded border pl-10 pr-3 py-2"
+          @input="handleSearch"
+        >
+      </div>
       <UiButton @click="handleAddContact">
+        <PlusIcon class="h-5 w-5 mr-1" />
         Add Contact
       </UiButton>
     </div>
@@ -70,6 +74,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/vue/24/outline'
 import { useAuth } from '~/composables/useAuth'
 import { useModal } from '~/composables/useModal'
 import { useContacts } from '~/composables/useContacts'
