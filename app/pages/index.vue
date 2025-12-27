@@ -29,7 +29,7 @@
     </div>
 
     <div v-else>
-      <div class="grid gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <ContactCard
           v-for="contact in filteredContacts"
           :key="contact.id"
@@ -142,7 +142,8 @@ function handleLoadMore() {
 }
 
 function handleDeleted() {
-  // Contact was deleted, list is already updated by useContacts
+  // Refresh from server to ensure pagination state is accurate
+  fetchContacts()
 }
 
 onMounted(fetchContacts)

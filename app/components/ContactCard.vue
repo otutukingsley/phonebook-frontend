@@ -1,29 +1,27 @@
 <template>
-  <div class="p-4 border rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow">
-    <div class="flex justify-between items-start">
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-2 mb-2">
-          <h3 class="font-semibold text-lg truncate">{{ contact.name }}</h3>
-          <UiBadge
-            :text="contact.type"
-            :color="contact.type === 'other' ? 'blue' : 'green'"
-            size="sm"
-          />
-        </div>
-        <p class="text-gray-600 truncate">{{ contact.email }}</p>
-        <p class="text-gray-600">{{ contact.phone }}</p>
-      </div>
-      <div class="flex gap-2 ml-4 flex-shrink-0">
-        <UiButton size="sm" color="blue" @click="$emit('view', contact)">
-          View
-        </UiButton>
-        <UiButton size="sm" color="gray" @click="$emit('edit', contact)">
-          Edit
-        </UiButton>
-        <UiButton size="sm" color="red" @click="$emit('delete', contact)">
-          Delete
-        </UiButton>
-      </div>
+  <div class="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow">
+    <div class="flex items-center gap-2 mb-3">
+      <h3 class="font-bold text-lg text-gray-700 truncate">{{ contact.name }}</h3>
+      <UiBadge
+        :text="contact.type"
+        :color="contact.type === 'other' ? 'blue' : 'green'"
+        size="sm"
+      />
+    </div>
+    <div class="space-y-1 mb-4">
+      <p class="text-gray-700 truncate">{{ contact.email }}</p>
+      <p class="text-gray-700">{{ contact.phone }}</p>
+    </div>
+    <div class="flex gap-2">
+      <UiButton size="sm" color="blue" @click="$emit('view', contact)">
+        View
+      </UiButton>
+      <UiButton size="sm" color="gray" @click="$emit('edit', contact)">
+        Edit
+      </UiButton>
+      <UiButton size="sm" color="red" @click="$emit('delete', contact)">
+        Delete
+      </UiButton>
     </div>
   </div>
 </template>
