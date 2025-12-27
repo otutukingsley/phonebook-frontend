@@ -10,15 +10,9 @@
 
     <div v-if="selectedContact" class="space-y-4">
       <div class="space-y-3">
-        <div class="flex items-start justify-between">
-          <div>
-            <label class="text-sm font-medium text-gray-500">Name</label>
-            <p class="text-gray-900 font-bold capitalize">{{ selectedContact.name }}</p>
-          </div>
-          <UiBadge
-            :text="selectedContact.type"
-            :color="selectedContact.type === 'other' ? 'blue' : 'green'"
-          />
+        <div>
+          <label class="text-sm font-medium text-gray-500">Name</label>
+          <p class="text-gray-900 capitalize">{{ selectedContact.name }}</p>
         </div>
 
         <div>
@@ -39,6 +33,16 @@
         <div v-if="selectedContact.notes">
           <label class="text-sm font-medium text-gray-500">Notes</label>
           <p class="text-gray-900 whitespace-pre-line">{{ selectedContact.notes }}</p>
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-gray-500">Type</label>
+          <div class="mt-1">
+            <UiBadge
+              :text="selectedContact.type"
+              :color="selectedContact.type === 'other' ? 'blue' : 'green'"
+            />
+          </div>
         </div>
       </div>
 

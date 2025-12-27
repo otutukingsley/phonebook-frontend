@@ -27,6 +27,31 @@
       />
 
       <div class="border-t pt-4 mt-4">
+        <p class="text-sm text-gray-500 mb-3">
+          {{ hasSecurityQuestion ? 'Update your security question (optional)' : 'Set up a security question for password recovery' }}
+        </p>
+
+        <UiSelect
+          v-model="form.values.securityQuestion"
+          field-name="securityQuestion"
+          :label="hasSecurityQuestion ? 'Security Question (optional)' : 'Security Question'"
+          placeholder="Select a security question"
+          :options="securityQuestions"
+          :error="form.touched.securityQuestion ? form.errors.securityQuestion : null"
+        />
+
+        <div class="mt-4">
+          <UiInput
+            v-model="form.values.securityAnswer"
+            name="securityAnswer"
+            :label="hasSecurityQuestion ? 'Security Answer (optional)' : 'Security Answer'"
+            placeholder="Enter your answer"
+            :error="form.touched.securityAnswer ? form.errors.securityAnswer : null"
+          />
+        </div>
+      </div>
+
+      <div class="border-t pt-4 mt-4">
         <p class="text-sm text-gray-500 mb-3">Leave password fields blank to keep your current password</p>
 
         <UiInput
@@ -65,21 +90,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useForm } from '~/composables/useForm'
 import { useAuth } from '~/composables/useAuth'
 import { useModal } from '~/composables/useModal'
+import { SECURITY_QUESTION_OPTIONS } from '~/constants/securityQuestions'
 import UiModal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
 import UiInput from '~/components/ui/Input.vue'
+import UiSelect from '~/components/ui/Select.vue'
+
+const securityQuestions = SECURITY_QUESTION_OPTIONS
 
 const { user, updateProfile, isLoading } = useAuth()
 const { close, isOpen } = useModal()
 const submitError = ref('')
 
+const hasSecurityQuestion = computed(() => !!user.value?.securityQuestion)
+
 const form = useForm({
   name: '',
   email: '',
+  securityQuestion: '',
+  securityAnswer: '',
   newPassword: '',
   confirmPassword: ''
 }, {
@@ -97,6 +130,17 @@ const form = useForm({
   email: [
     { type: 'required', message: 'Email is required' },
     { type: 'email', message: 'Please enter a valid email' }
+  ],
+  securityQuestion: [],
+  securityAnswer: [
+    {
+      type: 'custom',
+      validate: (value: unknown) => {
+        if (typeof value !== 'string' || !value) return true
+        return value.trim().length >= 2
+      },
+      message: 'Security answer must be at least 2 characters'
+    }
   ],
   newPassword: [
     {
@@ -116,6 +160,8 @@ watch(() => isOpen('edit-profile-modal'), (open) => {
     form.reset({
       name: user.value.name,
       email: user.value.email,
+      securityQuestion: user.value.securityQuestion || '',
+      securityAnswer: '',
       newPassword: '',
       confirmPassword: ''
     })
@@ -136,8 +182,20 @@ const handleSubmit = form.onSubmit(async (values) => {
     return
   }
 
+  // Validate security question requires answer
+  if (values.securityQuestion && !values.securityAnswer) {
+    submitError.value = 'Please provide an answer for the security question'
+    return
+  }
+
+  // For users without security question, require both fields
+  if (!hasSecurityQuestion.value && (!values.securityQuestion || !values.securityAnswer)) {
+    submitError.value = 'Please set up a security question for password recovery'
+    return
+  }
+
   try {
-    const payload: { name?: string; email?: string; password?: string } = {}
+    const payload: { name?: string; email?: string; password?: string; securityQuestion?: string; securityAnswer?: string } = {}
 
     if (values.name !== user.value?.name) {
       payload.name = values.name
@@ -147,6 +205,11 @@ const handleSubmit = form.onSubmit(async (values) => {
     }
     if (values.newPassword) {
       payload.password = values.newPassword
+    }
+    // Only send security fields if both are provided
+    if (values.securityQuestion && values.securityAnswer) {
+      payload.securityQuestion = values.securityQuestion
+      payload.securityAnswer = values.securityAnswer
     }
 
     if (Object.keys(payload).length === 0) {
