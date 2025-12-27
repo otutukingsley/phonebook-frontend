@@ -46,6 +46,7 @@
 </template>
 
 <script setup lang="ts">
+import { watch } from 'vue'
 import { XMarkIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
 import { useAuth } from '~/composables/useAuth'
 import { useModal } from '~/composables/useModal'
@@ -54,8 +55,19 @@ import UiModal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
 import UiSpinner from '~/components/ui/Spinner.vue'
 
-const { user } = useAuth()
-const { close, open } = useModal()
+const { user, fetchUser } = useAuth()
+const { close, open, isOpen } = useModal()
+
+// Fetch user data when modal opens
+watch(() => isOpen('view-profile-modal'), async (open) => {
+  if (open && !user.value) {
+    try {
+      await fetchUser(true)
+    } catch (error) {
+      console.error('Failed to fetch user:', error)
+    }
+  }
+}, { immediate: true })
 
 function handleClose() {
   close('view-profile-modal')
