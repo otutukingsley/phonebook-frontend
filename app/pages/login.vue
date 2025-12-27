@@ -40,8 +40,7 @@ const handleSubmit = async (values: LoginFormValues | RegisterFormValues) => {
   try {
     await login({
       email: String(values.email || ''),
-      password: String(values.password || ''),
-      remember: Boolean(values.remember)
+      password: String(values.password || '')
     })
     await navigateTo('/');
   } catch (err) {

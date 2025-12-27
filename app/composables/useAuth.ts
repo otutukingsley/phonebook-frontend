@@ -15,7 +15,6 @@ type UpdateProfilePayload = Record<string, unknown> & {
 type LoginPayload = Record<string, unknown> & {
   email: string;
   password: string;
-  remember?: boolean;
 };
 
 type RegisterPayload = Record<string, unknown> & {

@@ -52,14 +52,6 @@
       />
     </div>
 
-    <div v-if="mode === 'login'" class="mb-4">
-      <UiCheckbox
-        v-model="values.remember"
-        name="remember"
-        label="Remember me"
-      />
-    </div>
-
     <UiButton type="submit" :disabled="isSubmitting || submitting" class="w-full">
       <div class="flex items-center justify-center gap-2">
         <UiSpinner v-if="isSubmitting || submitting" size="xs" />
@@ -89,7 +81,6 @@
 import UiButton from '~/components/ui/Button.vue'
 import UiSpinner from '~/components/ui/Spinner.vue'
 import UiInput from '~/components/ui/Input.vue'
-import UiCheckbox from '~/components/ui/Checkbox.vue'
 import UiLink from '~/components/ui/Link.vue'
 import UiSelect from '~/components/ui/Select.vue'
 import { useForm } from '~/composables/useForm'
@@ -102,9 +93,7 @@ export interface BaseFormValues {
   password: string
 }
 
-export interface LoginFormValues extends BaseFormValues {
-  remember?: boolean
-}
+export interface LoginFormValues extends BaseFormValues {}
 
 export interface RegisterFormValues extends BaseFormValues {
   name: string
@@ -126,7 +115,6 @@ const initialValues = {
   name: '',
   email: '',
   password: '',
-  remember: false,
   securityQuestion: '',
   securityAnswer: ''
 } as const
@@ -204,11 +192,7 @@ const handleSubmit = onSubmit(async (vals) => {
       }
       emit('submit', payload)
     } else {
-      const payload: LoginFormValues = {
-        ...basePayload,
-        remember: Boolean(vals.remember)
-      }
-      emit('submit', payload)
+      emit('submit', basePayload)
     }
   } catch (err) {
     console.error('Form validation error:', err)
