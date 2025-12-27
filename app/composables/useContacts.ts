@@ -6,7 +6,7 @@ interface Contact {
   phone: string;
   address?: string;
   notes?: string;
-  type: "personal" | "professional";
+  type: "personal" | "other";
   createdAt: string;
   updatedAt?: string;
 }
@@ -17,8 +17,24 @@ type CreateContactPayload = {
   phone: string;
   address?: string;
   notes?: string;
-  type?: "personal" | "professional";
+  type?: "personal" | "other";
 };
+
+interface PaginationState {
+  lastKey: string | null;
+  hasMore: boolean;
+  limit: number;
+}
+
+interface PaginatedResponse {
+  data: Contact[];
+  pagination: {
+    limit: number;
+    count: number;
+    lastKey: string | null;
+    hasMore: boolean;
+  };
+}
 
 export function useContacts() {
   const { get, post, put, delete: del } = useApi();
@@ -28,22 +44,73 @@ export function useContacts() {
     "selected-contact",
     () => null
   );
-  const isLoading = useState<boolean>("contacts:loading", () => false);
+  const isLoading = useState<boolean>("contacts:loading", () => true);
+  const currentSearch = useState<string>("contacts:search", () => "");
+  const pagination = useState<PaginationState>("contacts:pagination", () => ({
+    lastKey: null,
+    hasMore: false,
+    limit: 10,
+  }));
 
-  async function fetchContacts(): Promise<Contact[]> {
+  async function fetchContacts(search?: string): Promise<Contact[]> {
     isLoading.value = true;
     try {
-      const data = await get<Contact[]>("/api/contacts");
-      contacts.value = data;
-      filteredContacts.value = data;
-      selectedContact.value = null;
-      return data;
+      const params = new URLSearchParams();
+      params.set("limit", String(pagination.value.limit));
+      if (search) params.set("search", search);
+
+      const response = await get<PaginatedResponse>(
+        `/api/contacts?${params.toString()}`
+      );
+
+      contacts.value = response.data;
+      filteredContacts.value = response.data;
+      pagination.value.lastKey = response.pagination.lastKey;
+      pagination.value.hasMore = response.pagination.hasMore;
+      currentSearch.value = search || "";
+
+      return response.data;
     } catch (error) {
       console.error("Error fetching contacts:", error);
       throw error;
     } finally {
       isLoading.value = false;
     }
+  }
+
+  async function loadMore(): Promise<Contact[]> {
+    if (!pagination.value.hasMore || !pagination.value.lastKey) {
+      return contacts.value;
+    }
+
+    isLoading.value = true;
+    try {
+      const params = new URLSearchParams();
+      params.set("limit", String(pagination.value.limit));
+      params.set("lastKey", pagination.value.lastKey);
+      if (currentSearch.value) params.set("search", currentSearch.value);
+
+      const response = await get<PaginatedResponse>(
+        `/api/contacts?${params.toString()}`
+      );
+
+      contacts.value = [...contacts.value, ...response.data];
+      filteredContacts.value = [...filteredContacts.value, ...response.data];
+      pagination.value.lastKey = response.pagination.lastKey;
+      pagination.value.hasMore = response.pagination.hasMore;
+
+      return contacts.value;
+    } catch (error) {
+      console.error("Error loading more contacts:", error);
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  async function getContact(id: string): Promise<Contact> {
+    const response = await get<Contact>(`/api/contacts/${id}`);
+    return response;
   }
 
   async function createContact(
@@ -66,60 +133,11 @@ export function useContacts() {
 
   async function updateContact(
     id: string,
-    updates: Partial<CreateContactPayload>
-  ): Promise<Contact | null> {
-    if (!selectedContact.value) {
-      console.warn("No contact selected for update");
-      return null;
-    }
+    updates: CreateContactPayload
+  ): Promise<Contact> {
     isLoading.value = true;
     try {
-      const cleanUpdates: Partial<CreateContactPayload> = {};
-      if (
-        updates.name !== undefined &&
-        updates.name !== selectedContact.value.name
-      ) {
-        cleanUpdates.name = updates.name;
-      }
-      if (
-        updates.email !== undefined &&
-        updates.email !== selectedContact.value.email
-      ) {
-        cleanUpdates.email = updates.email;
-      }
-      if (
-        updates.phone !== undefined &&
-        updates.phone !== selectedContact.value.phone
-      ) {
-        cleanUpdates.phone = updates.phone;
-      }
-      if (
-        updates.address !== undefined &&
-        updates.address !== selectedContact.value.address
-      ) {
-        cleanUpdates.address = updates.address;
-      }
-      if (
-        updates.notes !== undefined &&
-        updates.notes !== selectedContact.value.notes
-      ) {
-        cleanUpdates.notes = updates.notes;
-      }
-      if (
-        updates.type !== undefined &&
-        updates.type !== selectedContact.value.type
-      ) {
-        cleanUpdates.type = updates.type;
-      }
-
-      if (Object.keys(cleanUpdates).length === 0) {
-        return selectedContact.value;
-      }
-
-      const updatedContact = await put<Contact>(
-        `/api/contacts/${id}`,
-        cleanUpdates
-      );
+      const updatedContact = await put<Contact>(`/api/contacts/${id}`, updates);
       contacts.value = contacts.value.map((c) =>
         c.id === id ? updatedContact : c
       );
@@ -155,24 +173,9 @@ export function useContacts() {
     }
   }
 
-  function searchContacts(query: string): Contact[] {
-    if (!query.trim()) {
-      filteredContacts.value = contacts.value;
-      return contacts.value;
-    }
-
-    const searchTerm = query.toLowerCase();
-    filteredContacts.value = contacts.value.filter(
-      (contact) =>
-        contact.name.toLowerCase().includes(searchTerm) ||
-        contact.email.toLowerCase().includes(searchTerm) ||
-        contact.phone.toLowerCase().includes(searchTerm) ||
-        (contact.address &&
-          contact.address.toLowerCase().includes(searchTerm)) ||
-        (contact.notes && contact.notes.toLowerCase().includes(searchTerm)) ||
-        contact.type.toLowerCase().includes(searchTerm)
-    );
-    return filteredContacts.value;
+  async function searchContacts(query: string): Promise<Contact[]> {
+    pagination.value.lastKey = null;
+    return await fetchContacts(query.trim() || undefined);
   }
 
   function selectContact(contact: Contact | null) {
@@ -184,7 +187,10 @@ export function useContacts() {
     filteredContacts,
     selectedContact,
     isLoading,
+    pagination,
     fetchContacts,
+    loadMore,
+    getContact,
     createContact,
     updateContact,
     deleteContact,
