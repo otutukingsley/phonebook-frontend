@@ -9,6 +9,11 @@ provider:
     NUXT_API_BASE_URL: ${env:NUXT_API_BASE_URL, 'http://localhost:5500'}
     NUXT_SESSION_PASSWORD: ${env:NUXT_SESSION_PASSWORD, 'change-me-to-a-secure-password'}
 
+package:
+  patterns:
+    - '!**'
+    - '.output/**'
+
 functions:
   nuxt:
     handler: .output/server/index.handler
