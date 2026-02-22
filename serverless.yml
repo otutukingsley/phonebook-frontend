@@ -3,15 +3,17 @@ frameworkVersion: "3"
 
 provider:
   name: aws
-  runtime: nodejs18.x
+  runtime: nodejs20.x
   region: us-east-1
   environment:
-    NUXT_API_BASE_URL: ${env:NUXT_API_BASE_URL, 'http://localhost:5500'} # Will need backend URL here
+    NUXT_API_BASE_URL: ${env:NUXT_API_BASE_URL, 'http://localhost:5500'}
     NUXT_SESSION_PASSWORD: ${env:NUXT_SESSION_PASSWORD, 'change-me-to-a-secure-password'}
 
 functions:
   nuxt:
     handler: .output/server/index.handler
+    memorySize: 512
+    timeout: 15
     events:
       - http:
           path: /
@@ -21,13 +23,3 @@ functions:
           path: /{proxy+}
           method: ANY
           cors: true
-
-plugins:
-  - serverless-offline
-  - serverless-apigw-binary
-
-custom:
-  apigwBinary:
-    types:
-      - "image/*"
-      - "font/*"
