@@ -31,5 +31,6 @@ export default defineNuxtConfig({
   vite: { plugins: [tailwindcss()] },
   nitro: {
     preset: "aws-lambda",
+    serveStatic: true,
   },
 });
