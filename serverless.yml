@@ -8,8 +8,6 @@ provider:
   environment:
     NUXT_API_BASE_URL: ${env:NUXT_API_BASE_URL, 'http://localhost:5500'}
     NUXT_SESSION_PASSWORD: ${env:NUXT_SESSION_PASSWORD, 'change-me-to-a-secure-password'}
-    NUXT_APP_BASE_URL: ${env:NUXT_APP_BASE_URL, '/'}
-    NITRO_APP_BASE_URL: ${env:NUXT_APP_BASE_URL, '/'}
 
 package:
   patterns:
@@ -22,11 +20,9 @@ functions:
     memorySize: 512
     timeout: 15
     events:
-      - http:
+      - httpApi:
           path: /
-          method: ANY
-          cors: true
-      - http:
+          method: '*'
+      - httpApi:
           path: /{proxy+}
-          method: ANY
-          cors: true
+          method: '*'
