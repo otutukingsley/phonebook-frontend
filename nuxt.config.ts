@@ -20,7 +20,6 @@ export default defineNuxtConfig({
     strict: true,
   },
   modules: [
-    "@nuxt/content",
     "@nuxt/eslint",
     "@nuxt/image",
     "@nuxt/scripts",
