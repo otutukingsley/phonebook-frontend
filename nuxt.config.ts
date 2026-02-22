@@ -31,6 +31,5 @@ export default defineNuxtConfig({
   vite: { plugins: [tailwindcss()] },
   nitro: {
     preset: "aws-lambda",
-    serveStatic: false, // S3 will handle static assets
   },
 });
